@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { collection, getDocs, orderBy, query } from 'firebase/firestore'
+import { collection, getDocs, orderBy, query, doc, deleteDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { formatDate, formatDateShort } from '../utils/scheduleCalculator'
 
@@ -82,8 +82,18 @@ export default function AdminPanel() {
     )
   }
 
+  async function handleDeleteStudent(student) {
+    try {
+      await deleteDoc(doc(db, 'users', student.uid))
+      setStudents(prev => prev.filter(s => s.uid !== student.uid))
+      setSelected(null)
+    } catch (err) {
+      alert('Failed to remove student: ' + err.message)
+    }
+  }
+
   if (selected) {
-    return <StudentDetail student={selected} onBack={() => setSelected(null)} />
+    return <StudentDetail student={selected} onBack={() => setSelected(null)} onDelete={handleDeleteStudent} />
   }
 
   return (
@@ -179,7 +189,7 @@ function StudentCard({ student, onClick }) {
   )
 }
 
-function StudentDetail({ student, onBack }) {
+function StudentDetail({ student, onBack, onDelete }) {
   const score        = student.onboardingData?.score || 0
   const completedDays = student.completedDays || []
   const completed    = completedDays.filter(d => !d.isLeave).length
@@ -187,13 +197,29 @@ function StudentDetail({ student, onBack }) {
   const totalDays    = student.plan?.totalDays || 1
   const pct          = Math.round((completed / totalDays) * 100)
   const ratings      = student.onboardingData?.juzRatings || []
+  const [confirming, setConfirming] = useState(false)
+  const [deleting,   setDeleting]   = useState(false)
+
+  async function confirmDelete() {
+    setDeleting(true)
+    await onDelete(student)
+    setDeleting(false)
+  }
 
   return (
     <div className="page-no-tabs fade-in" style={{ overflow: 'auto' }}>
       <div style={{ padding: '56px 16px 16px', background: 'var(--brown)', color: '#fff' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', marginBottom: 12, fontSize: '0.9rem' }}>
-          ← All Students
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: '0.9rem' }}>
+            ← All Students
+          </button>
+          <button
+            onClick={() => setConfirming(true)}
+            style={{ background: 'rgba(231,76,60,0.2)', border: '1px solid rgba(231,76,60,0.5)', color: '#ff6b6b', borderRadius: 'var(--radius-sm)', padding: '6px 14px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+          >
+            Remove Student
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.3)' }}>
             {student.photoURL
@@ -268,6 +294,36 @@ function StudentDetail({ student, onBack }) {
           {completedDays.length === 0 && <p className="text-sm text-muted">No activity yet</p>}
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {confirming && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
+          <div className="card" style={{ width: '100%', maxWidth: 340, padding: 24, textAlign: 'center' }}>
+            <p style={{ fontSize: '2rem', marginBottom: 8 }}>⚠️</p>
+            <p className="fw-600" style={{ color: 'var(--brown)', marginBottom: 8 }}>Remove Student?</p>
+            <p className="text-sm text-muted" style={{ marginBottom: 20, lineHeight: 1.6 }}>
+              This will permanently delete <strong>{student.displayName}</strong>'s account and all their data. This cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                className="btn btn-ghost"
+                style={{ flex: 1 }}
+                onClick={() => setConfirming(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                style={{ flex: 1, padding: '12px', borderRadius: 'var(--radius)', border: 'none', background: '#e74c3c', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}
+              >
+                {deleting ? 'Removing…' : 'Yes, Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
