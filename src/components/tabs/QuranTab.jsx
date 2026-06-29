@@ -16,12 +16,26 @@ export default function QuranTab() {
   const [jumpPage, setJumpPage] = useState('')
   const scrollRef = useRef()
 
-  const plan         = userData?.plan
-  const startDate    = plan?.schedule?.[0]?.date
-  const todayEntry   = plan?.schedule ? getTodaySchedule(plan.schedule, startDate) : null
-
-  const todayNewStart   = todayEntry?.newLesson?.startPage
+  const plan             = userData?.plan
+  const schedule         = plan?.schedule || []
+  const startDate        = schedule[0]?.date
+  const todayEntry       = schedule.length ? getTodaySchedule(schedule, startDate) : null
+  const todayNewStart    = todayEntry?.newLesson?.startPage
+  const todayNewEnd      = todayEntry?.newLesson?.endPage
   const todayMurajaStart = todayEntry?.muraja?.startPage
+  const todayMurajaEnd   = todayEntry?.muraja?.endPage
+
+  // Yesterday's lesson = the non-weekend entry just before today
+  const todayIdx         = todayEntry ? schedule.findIndex(e => e.day === todayEntry.day) : -1
+  const yesterdayEntry   = todayIdx > 0 ? schedule[todayIdx - 1] : null
+  const yestNewStart     = yesterdayEntry?.newLesson?.startPage
+  const yestNewEnd       = yesterdayEntry?.newLesson?.endPage
+
+  // Open on today's lesson page, or muraja page, or page 1
+  useEffect(() => {
+    const initialPage = todayNewStart || todayMurajaStart || 1
+    setPage(initialPage)
+  }, [])
 
   useEffect(() => {
     fetchPage(page)
@@ -112,18 +126,38 @@ export default function QuranTab() {
           </button>
         </div>
 
-        {/* Quick jump chips */}
-        <div style={{ display: 'flex', gap: 6, marginTop: 10, overflowX: 'auto', paddingBottom: 2 }}>
-          {todayNewStart && (
-            <button onClick={() => setPage(todayNewStart)} className="chip chip-gold" style={{ cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-              📖 New: Pg {todayNewStart}
-            </button>
-          )}
-          {todayMurajaStart && (
-            <button onClick={() => setPage(todayMurajaStart)} className="chip chip-teal" style={{ cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap' }}>
-              🔄 Muraja: Pg {todayMurajaStart}
-            </button>
-          )}
+        {/* Jump buttons */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          <JumpBtn
+            label="New Lesson"
+            pages={todayNewStart ? `Pg ${todayNewStart}–${todayNewEnd}` : '—'}
+            color="var(--gold)"
+            textColor="#7a5500"
+            icon="📖"
+            onClick={() => todayNewStart && setPage(todayNewStart)}
+            active={todayNewStart && page >= todayNewStart && page <= todayNewEnd}
+            disabled={!todayNewStart}
+          />
+          <JumpBtn
+            label="Muraja'ah"
+            pages={todayMurajaStart ? `Pg ${todayMurajaStart}–${todayMurajaEnd}` : '—'}
+            color="var(--teal)"
+            textColor="#fff"
+            icon="🔄"
+            onClick={() => todayMurajaStart && setPage(todayMurajaStart)}
+            active={todayMurajaStart && page >= todayMurajaStart && page <= todayMurajaEnd}
+            disabled={!todayMurajaStart}
+          />
+          <JumpBtn
+            label="Yesterday"
+            pages={yestNewStart ? `Pg ${yestNewStart}–${yestNewEnd}` : '—'}
+            color="var(--brown)"
+            textColor="#fff"
+            icon="📚"
+            onClick={() => yestNewStart && setPage(yestNewStart)}
+            active={yestNewStart && page >= yestNewStart && page <= yestNewEnd}
+            disabled={!yestNewStart}
+          />
         </div>
       </div>
 
@@ -155,7 +189,7 @@ export default function QuranTab() {
                   <p className="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
                 )}
                 {/* Ayahs as continuous text */}
-                <div className="quran-page">
+                <div className="quran-page" style={{ fontSize }}>
                   {group.ayahs.map(a => (
                     <span key={a.number} className="quran-ayah">
                       {a.text}{' '}
@@ -182,6 +216,32 @@ const fontBtn = {
   fontSize: '0.8rem',
   fontWeight: 700,
   color: 'var(--brown)',
+}
+
+function JumpBtn({ label, pages, color, textColor, icon, onClick, active, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        flex: 1,
+        padding: '10px 8px',
+        borderRadius: 'var(--radius-sm)',
+        border: `2px solid ${active ? color : 'var(--border)'}`,
+        background: active ? color : 'var(--surface)',
+        color: active ? textColor : disabled ? 'var(--border)' : 'var(--text-2)',
+        cursor: disabled ? 'default' : 'pointer',
+        textAlign: 'center',
+        transition: 'all 0.2s',
+        fontFamily: 'inherit',
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <div style={{ fontSize: '1.1rem', lineHeight: 1 }}>{icon}</div>
+      <div style={{ fontSize: '0.7rem', fontWeight: 700, marginTop: 4, lineHeight: 1.2 }}>{label}</div>
+      <div style={{ fontSize: '0.65rem', opacity: 0.75, marginTop: 2 }}>{pages}</div>
+    </button>
+  )
 }
 
 function toArabicNum(n) {

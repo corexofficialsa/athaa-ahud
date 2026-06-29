@@ -25,22 +25,28 @@ export function AuthProvider({ children }) {
   const [loading, setLoading]         = useState(true)
 
   async function register({ email, password, username, displayName, photoFile, onboardingData, plan }) {
+    console.log('[1] Creating auth user...')
     const cred = await createUserWithEmailAndPassword(auth, email, password)
     const uid  = cred.user.uid
+    console.log('[2] Auth user created:', uid)
 
     // Photo upload is optional — skip silently if Storage isn't enabled
     let photoURL = ''
     if (photoFile) {
       try {
+        console.log('[3] Uploading photo...')
         const storageRef = ref(storage, `profiles/${uid}/${photoFile.name}`)
         await uploadBytes(storageRef, photoFile)
         photoURL = await getDownloadURL(storageRef)
+        console.log('[3] Photo uploaded.')
       } catch (e) {
-        console.warn('Photo upload skipped:', e.message)
+        console.warn('[3] Photo upload skipped:', e.message)
       }
     }
 
+    console.log('[4] Generating roll number...')
     const rollNumber = await generateUniqueRoll()
+    console.log('[5] Roll number:', rollNumber)
 
     const data = {
       uid,
@@ -56,7 +62,9 @@ export function AuthProvider({ children }) {
       leaves: [],
     }
 
+    console.log('[6] Writing to Firestore...')
     await setDoc(doc(db, 'users', uid), data)
+    console.log('[7] Done! Navigating...')
     setUserData(data)
     return data
   }

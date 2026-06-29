@@ -16,16 +16,8 @@ export function calcPerformanceScore(answers) {
   return Math.round((s1 + s2 + s3 + s4) / 4)
 }
 
-export function getDailyNewPages(performanceScore, dayNumber) {
-  if (performanceScore >= 80) {
-    if (dayNumber <= 7)  return 5
-    if (dayNumber <= 21) return 10
-    return 20
-  } else {
-    if (dayNumber <= 7)  return 2
-    if (dayNumber <= 21) return 5
-    return 10
-  }
+export function getDailyNewPages(performanceScore) {
+  return performanceScore >= 75 ? 5 : 2
 }
 
 export function getDailyMurajaPages(performanceScore) {
@@ -63,7 +55,7 @@ export function buildSchedule({ startPage, startDate, weekendDays, juzRatings, p
 
   while (completedNewPages < totalNewPages || murajaPool > 0) {
     dayNumber++
-    const newPagesForDay   = Math.min(getDailyNewPages(performanceScore, dayNumber), totalNewPages - completedNewPages)
+    const newPagesForDay   = Math.min(getDailyNewPages(performanceScore), totalNewPages - completedNewPages)
     const murajaPagesForDay = murajaPool > 0 ? Math.min(getDailyMurajaPages(performanceScore), murajaPool) : 0
 
     const entry = {

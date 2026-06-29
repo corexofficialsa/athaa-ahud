@@ -123,7 +123,7 @@ export default function Onboarding() {
       })
       const onboardingData = { answers, startSurah, startAyah, startDate, weekendDays, juzRatings, score }
       await register({ email, password, username, displayName: name, photoFile, onboardingData, plan })
-      navigate('/dashboard')
+      navigate('/plan-reveal')
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.')
     } finally {
