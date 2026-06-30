@@ -1,61 +1,84 @@
 import { useState, useEffect } from 'react'
 
 export default function SplashScreen({ onDone }) {
-  const [open, setOpen] = useState(false)
-  const [fade, setFade] = useState(false)
+  const [phase, setPhase] = useState('idle') // idle → open → zoom → done
 
   useEffect(() => {
-    const t1 = setTimeout(() => setOpen(true),  550)
-    const t2 = setTimeout(() => setFade(true),  1350)
-    const t3 = setTimeout(() => onDone(),        1850)
+    const t1 = setTimeout(() => setPhase('open'),  350)
+    const t2 = setTimeout(() => setPhase('zoom'),  1150)
+    const t3 = setTimeout(() => onDone(),           1900)
     return () => [t1, t2, t3].forEach(clearTimeout)
   }, [])
+
+  const isOpen = phase === 'open' || phase === 'zoom'
+  const isZoom = phase === 'zoom'
 
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
-      background: '#3d2610',
+      background: '#2a1808',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      opacity: fade ? 0 : 1,
-      transition: 'opacity 0.5s ease',
+      overflow: 'hidden',
     }}>
-      {/* Background glow */}
+      {/* Radial glow behind book */}
       <div style={{
         position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse at center, rgba(155,118,84,0.35) 0%, transparent 65%)',
+        background: 'radial-gradient(ellipse at center, rgba(155,118,84,0.4) 0%, transparent 60%)',
+        opacity: isZoom ? 0 : 1,
+        transition: 'opacity 0.6s ease',
       }} />
 
-      {/* 3D scene */}
-      <div style={{ perspective: 1000, perspectiveOrigin: '50% 50%' }}>
+      {/* Whole scene — zooms in on open */}
+      <div style={{
+        perspective: 900,
+        transform: isZoom ? 'scale(4.5)' : 'scale(1)',
+        opacity:    isZoom ? 0 : 1,
+        transition: isZoom
+          ? 'transform 0.75s cubic-bezier(0.4,0,1,1), opacity 0.55s ease 0.1s'
+          : 'none',
+        willChange: 'transform, opacity',
+      }}>
         <div style={{
           position: 'relative', width: 280, height: 350,
-          animation: 'bookAppear 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards',
+          animation: 'bookAppear 0.4s cubic-bezier(0.34,1.4,0.64,1) forwards',
         }}>
 
-          {/* Inner pages (visible when book opens) */}
+          {/* Inner pages — revealed when covers open */}
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(180deg, #f5efe4 0%, #ede3d0 100%)',
+            background: 'linear-gradient(180deg, #f8f1e4 0%, #ede3cc 100%)',
             borderRadius: 4,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
             overflow: 'hidden',
           }}>
-            {/* Page lines */}
-            {Array.from({ length: 14 }).map((_, i) => (
+            {/* Ruled lines */}
+            {Array.from({ length: 16 }).map((_, i) => (
               <div key={i} style={{
-                position: 'absolute',
-                left: 20, right: 20,
-                top: 40 + i * 20,
-                height: 1,
-                background: 'rgba(155,118,84,0.12)',
+                position: 'absolute', left: 18, right: 18,
+                top: 30 + i * 19, height: 1,
+                background: 'rgba(155,118,84,0.13)',
               }} />
             ))}
-            {/* Center binding line */}
+            {/* Center binding shadow */}
             <div style={{
-              position: 'absolute', top: 0, bottom: 0,
-              left: '50%', width: 1, marginLeft: -0.5,
-              background: 'rgba(155,118,84,0.2)',
+              position: 'absolute', top: 0, bottom: 0, left: '50%',
+              width: 18, marginLeft: -9,
+              background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.18) 0%, transparent 80%)',
             }} />
+            {/* Arabic bismillah faint watermark */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              pointerEvents: 'none',
+            }}>
+              <p style={{
+                fontFamily: 'Amiri, serif',
+                fontSize: '1.1rem',
+                color: 'rgba(155,118,84,0.2)',
+                direction: 'rtl',
+                letterSpacing: 2,
+                userSelect: 'none',
+              }}>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+            </div>
           </div>
 
           {/* LEFT COVER */}
@@ -63,47 +86,21 @@ export default function SplashScreen({ onDone }) {
             position: 'absolute', left: 0, top: 0,
             width: '50%', height: '100%',
             transformOrigin: 'right center',
-            transform: open ? 'rotateY(-165deg)' : 'rotateY(0deg)',
-            transition: 'transform 0.75s cubic-bezier(0.65, 0, 0.35, 1)',
+            transform: isOpen ? 'rotateY(-165deg)' : 'rotateY(0deg)',
+            transition: 'transform 0.72s cubic-bezier(0.65,0,0.35,1)',
             transformStyle: 'preserve-3d',
             zIndex: 2,
           }}>
-            {/* Front face */}
             <div style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(150deg, #b08050 0%, #9B7654 40%, #7a5230 100%)',
+              background: 'linear-gradient(150deg, #b08858 0%, #9B7654 45%, #7a5230 100%)',
               borderRadius: '10px 0 0 10px',
-              boxShadow: 'inset -4px 0 12px rgba(0,0,0,0.35)',
+              boxShadow: 'inset -3px 0 10px rgba(0,0,0,0.4)',
             }}>
-              <div style={{
-                position: 'absolute', inset: 10,
-                border: '1px solid rgba(250,221,164,0.3)',
-                borderRadius: 6,
-              }} />
-              {/* Corner ornament */}
-              <div style={{
-                position: 'absolute', top: 16, left: 16,
-                width: 18, height: 18,
-                borderTop: '2px solid rgba(250,221,164,0.4)',
-                borderLeft: '2px solid rgba(250,221,164,0.4)',
-                borderRadius: '3px 0 0 0',
-              }} />
-              <div style={{
-                position: 'absolute', bottom: 16, left: 16,
-                width: 18, height: 18,
-                borderBottom: '2px solid rgba(250,221,164,0.4)',
-                borderLeft: '2px solid rgba(250,221,164,0.4)',
-                borderRadius: '0 0 0 3px',
-              }} />
+              <div style={{ position: 'absolute', inset: 10, border: '1px solid rgba(250,221,164,0.28)', borderRadius: 6 }} />
+              <div style={{ position: 'absolute', top: 14, left: 14, width: 16, height: 16, borderTop: '2px solid rgba(250,221,164,0.45)', borderLeft: '2px solid rgba(250,221,164,0.45)', borderRadius: '3px 0 0 0' }} />
+              <div style={{ position: 'absolute', bottom: 14, left: 14, width: 16, height: 16, borderBottom: '2px solid rgba(250,221,164,0.45)', borderLeft: '2px solid rgba(250,221,164,0.45)', borderRadius: '0 0 0 3px' }} />
             </div>
-            {/* Back face (inner side) */}
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: '#e8dcc8',
-              borderRadius: '10px 0 0 10px',
-              backfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-            }} />
           </div>
 
           {/* RIGHT COVER */}
@@ -111,72 +108,47 @@ export default function SplashScreen({ onDone }) {
             position: 'absolute', right: 0, top: 0,
             width: '50%', height: '100%',
             transformOrigin: 'left center',
-            transform: open ? 'rotateY(165deg)' : 'rotateY(0deg)',
-            transition: 'transform 0.75s cubic-bezier(0.65, 0, 0.35, 1)',
+            transform: isOpen ? 'rotateY(165deg)' : 'rotateY(0deg)',
+            transition: 'transform 0.72s cubic-bezier(0.65,0,0.35,1)',
             transformStyle: 'preserve-3d',
             zIndex: 2,
           }}>
-            {/* Front face */}
             <div style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(150deg, #9B7654 0%, #7a5230 60%, #5c3d1e 100%)',
+              background: 'linear-gradient(150deg, #9B7654 0%, #7a5230 55%, #5c3d1e 100%)',
               borderRadius: '0 10px 10px 0',
-              boxShadow: 'inset 4px 0 12px rgba(0,0,0,0.35)',
+              boxShadow: 'inset 3px 0 10px rgba(0,0,0,0.4)',
             }}>
-              <div style={{
-                position: 'absolute', inset: 10,
-                border: '1px solid rgba(250,221,164,0.25)',
-                borderRadius: 6,
-              }} />
-              <div style={{
-                position: 'absolute', top: 16, right: 16,
-                width: 18, height: 18,
-                borderTop: '2px solid rgba(250,221,164,0.35)',
-                borderRight: '2px solid rgba(250,221,164,0.35)',
-                borderRadius: '0 3px 0 0',
-              }} />
-              <div style={{
-                position: 'absolute', bottom: 16, right: 16,
-                width: 18, height: 18,
-                borderBottom: '2px solid rgba(250,221,164,0.35)',
-                borderRight: '2px solid rgba(250,221,164,0.35)',
-                borderRadius: '0 0 3px 0',
-              }} />
+              <div style={{ position: 'absolute', inset: 10, border: '1px solid rgba(250,221,164,0.22)', borderRadius: 6 }} />
+              <div style={{ position: 'absolute', top: 14, right: 14, width: 16, height: 16, borderTop: '2px solid rgba(250,221,164,0.38)', borderRight: '2px solid rgba(250,221,164,0.38)', borderRadius: '0 3px 0 0' }} />
+              <div style={{ position: 'absolute', bottom: 14, right: 14, width: 16, height: 16, borderBottom: '2px solid rgba(250,221,164,0.38)', borderRight: '2px solid rgba(250,221,164,0.38)', borderRadius: '0 0 3px 0' }} />
             </div>
-            {/* Back face */}
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: '#e8dcc8',
-              borderRadius: '0 10px 10px 0',
-              backfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-            }} />
           </div>
 
           {/* SPINE */}
           <div style={{
             position: 'absolute', left: '50%', top: 0, bottom: 0,
             width: 10, marginLeft: -5,
-            background: 'linear-gradient(180deg, #4a2e10 0%, #2d1a08 50%, #4a2e10 100%)',
+            background: 'linear-gradient(90deg, #3a2208, #1e0e04, #3a2208)',
             zIndex: 5,
-            boxShadow: '0 0 8px rgba(0,0,0,0.6)',
+            boxShadow: '0 0 10px rgba(0,0,0,0.7)',
           }} />
 
-          {/* LOGO — sits on top of closed covers, fades as book opens */}
+          {/* LOGO — on closed cover, fades as book opens */}
           <div style={{
             position: 'absolute', inset: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             zIndex: 6,
-            opacity: open ? 0 : 1,
-            transform: open ? 'scale(0.92)' : 'scale(1)',
-            transition: 'opacity 0.3s ease, transform 0.3s ease',
+            opacity: isOpen ? 0 : 1,
+            transform: isOpen ? 'scale(0.88)' : 'scale(1)',
+            transition: 'opacity 0.25s ease, transform 0.25s ease',
             pointerEvents: 'none',
           }}>
             <div style={{
-              background: 'rgba(255,255,255,0.96)',
+              background: 'rgba(255,255,255,0.97)',
               borderRadius: 14,
               padding: '14px 22px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+              boxShadow: '0 10px 36px rgba(0,0,0,0.4)',
             }}>
               <img src="/logo.png" alt="التعاهد" style={{ width: 170, display: 'block' }} />
             </div>
