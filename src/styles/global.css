@@ -545,6 +545,28 @@ tr:hover td { background: var(--bg); }
   padding-bottom: calc(var(--tab-h) + 20px);
 }
 
+/* Splash screen */
+@keyframes splashLogoIn {
+  from { opacity: 0; transform: scale(0.75) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes splashDotsIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes splashDotPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.5); }
+}
+@keyframes splashRipple {
+  0%   { transform: translate(-50%,-50%) scale(0.3); opacity: 0.6; }
+  100% { transform: translate(-50%,-50%) scale(2.4); opacity: 0; }
+}
+@keyframes splashOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.06); }
+}
+
 /* Fade animation */
 .fade-in {
   animation: fadeIn 0.3s ease;

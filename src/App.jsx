@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useAuth } from './contexts/AuthContext'
+import SplashScreen from './components/SplashScreen'
 
 const Landing       = lazy(() => import('./pages/Landing'))
 const Onboarding    = lazy(() => import('./pages/Onboarding'))
@@ -30,13 +31,10 @@ function OnboardRoute({ children }) {
 
 export default function App() {
   const { loading } = useAuth()
+  const [splash, setSplash] = useState(true)
 
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner" />
-      </div>
-    )
+  if (splash || loading) {
+    return <SplashScreen onDone={() => setSplash(false)} />
   }
 
   return (
