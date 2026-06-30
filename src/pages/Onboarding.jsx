@@ -1,9 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { SURAHS, JUZ } from '../utils/quranData'
 import { calcPerformanceScore, buildSchedule } from '../utils/scheduleCalculator'
-import ImageCropper from '../components/ImageCropper'
 
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
 
@@ -68,9 +67,6 @@ export default function Onboarding() {
   const [username, setUsername] = useState('')
   const [email,    setEmail]    = useState('')
   const [password, setPass]     = useState('')
-  const [photoFile, setPhoto]      = useState(null)
-  const [photoPreview, setPhotoPreview] = useState(null)
-  const [cropSrc, setCropSrc]      = useState(null)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
 
@@ -91,21 +87,6 @@ export default function Onboarding() {
     setJR(prev => prev.map(r => r.juz === juzNum ? { ...r, [field]: value } : r))
   }
 
-  function handlePhotoChange(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = ev => setCropSrc(ev.target.result)
-    reader.readAsDataURL(file)
-    e.target.value = ''
-  }
-
-  function handleCropConfirm(croppedFile, previewUrl) {
-    setPhoto(croppedFile)
-    setPhotoPreview(previewUrl)
-    setCropSrc(null)
-  }
-
   async function handleSubmit() {
     if (!username || !email || !password) { setError('Please fill all fields.'); return }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return }
@@ -122,7 +103,7 @@ export default function Onboarding() {
         performanceScore: score,
       })
       const onboardingData = { answers, startSurah, startAyah, startDate, weekendDays, juzRatings, score, startPage }
-      await register({ email, password, username, displayName: name, photoFile, onboardingData, plan })
+      await register({ email, password, username, displayName: name, onboardingData, plan })
       navigate('/plan-reveal')
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.')
@@ -368,31 +349,6 @@ export default function Onboarding() {
             <h2 style={{ color: 'var(--brown)', marginBottom: 6 }}>Create your account, {name}</h2>
             <p className="text-sm text-muted" style={{ marginBottom: 24 }}>Your progress will be saved securely across all devices</p>
 
-            {/* Photo upload */}
-            <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <div
-                onClick={() => fileRef.current?.click()}
-                style={{
-                  width: 90, height: 90,
-                  borderRadius: '50%',
-                  background: 'var(--cream)',
-                  border: '2px dashed var(--brown)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  overflow: 'hidden',
-                }}
-              >
-                {photoPreview
-                  ? <img src={photoPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ color: 'var(--brown)', fontSize: '1.8rem' }}>+</span>
-                }
-              </div>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
-              <p className="text-xs text-muted" style={{ marginTop: 6 }}>Profile photo (optional)</p>
-            </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div className="input-group">
                 <label>Username</label>
@@ -432,13 +388,6 @@ export default function Onboarding() {
         )}
       </div>
 
-      {cropSrc && (
-        <ImageCropper
-          imageSrc={cropSrc}
-          onConfirm={handleCropConfirm}
-          onCancel={() => setCropSrc(null)}
-        />
-      )}
     </div>
   )
 }

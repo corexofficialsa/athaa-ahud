@@ -9,8 +9,7 @@ import {
 import {
   doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc,
 } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { auth, db, storage } from '../firebase'
+import { auth, db } from '../firebase'
 import { generateRollNumber, buildSchedule } from '../utils/scheduleCalculator'
 
 function computeSchedule(userData) {
@@ -148,14 +147,6 @@ export function AuthProvider({ children }) {
     await updateUserData({ leaves: updated })
   }
 
-  async function uploadProfilePhoto(file) {
-    if (!currentUser) return
-    const storageRef = ref(storage, `profiles/${currentUser.uid}/${file.name}`)
-    await uploadBytes(storageRef, file)
-    const url = await getDownloadURL(storageRef)
-    await updateUserData({ photoURL: url })
-    return url
-  }
 
   async function refreshUserData() {
     if (!currentUser) return
@@ -181,8 +172,16 @@ export function AuthProvider({ children }) {
     const unsub = onAuthStateChanged(auth, async user => {
       setCurrentUser(user)
       if (user) {
-        const snap = await getDoc(doc(db, 'users', user.uid))
-        if (snap.exists()) applyUserData(snap.data())
+        try {
+          const snap = await Promise.race([
+            getDoc(doc(db, 'users', user.uid)),
+            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 6000)),
+          ])
+          if (snap.exists()) applyUserData(snap.data())
+          else applyUserData(null)
+        } catch {
+          applyUserData(null)
+        }
       } else {
         applyUserData(null)
       }
@@ -205,7 +204,6 @@ export function AuthProvider({ children }) {
     updateUserData,
     markDayComplete,
     addLeave,
-    uploadProfilePhoto,
     refreshUserData,
   }
 

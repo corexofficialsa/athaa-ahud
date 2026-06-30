@@ -33,9 +33,11 @@ export default function App() {
   const { loading } = useAuth()
   const [splash, setSplash] = useState(true)
 
-  if (splash || loading) {
-    return <SplashScreen onDone={() => setSplash(false)} />
-  }
+  // Show splash on first open. Runs in parallel with auth loading.
+  if (splash) return <SplashScreen onDone={() => setSplash(false)} />
+
+  // Auth still restoring session — show app background, not blank white
+  if (loading) return <div style={{ height: '100%', background: 'var(--bg)' }} />
 
   return (
     <Suspense fallback={<PageLoader />}>
