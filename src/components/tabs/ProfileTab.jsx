@@ -1,20 +1,17 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { formatDate } from '../../utils/scheduleCalculator'
-import ImageCropper from '../ImageCropper'
 
 export default function ProfileTab() {
   const navigate  = useNavigate()
-  const { userData, logout, uploadProfilePhoto, updateUserData, resetPassword } = useAuth()
-  const fileRef   = useRef()
+  const { userData, logout, updateUserData, resetPassword } = useAuth()
   const [loading, setLoading]   = useState(false)
   const [toast,   setToast]     = useState('')
   const [editName, setEditName] = useState(false)
   const [newName, setNewName]   = useState(userData?.displayName || '')
   const [showLogout, setShowLogout] = useState(false)
   const [showReset,  setShowReset]  = useState(false)
-  const [cropSrc,  setCropSrc]  = useState(null)
 
   const perf        = userData?.onboardingData?.score || 0
   const completedDays = userData?.completedDays || []
@@ -25,28 +22,6 @@ export default function ProfileTab() {
   function showMsg(msg) {
     setToast(msg)
     setTimeout(() => setToast(''), 3000)
-  }
-
-  function handlePhotoChange(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = ev => setCropSrc(ev.target.result)
-    reader.readAsDataURL(file)
-    e.target.value = ''
-  }
-
-  async function handleCropConfirm(croppedFile) {
-    setCropSrc(null)
-    setLoading(true)
-    try {
-      await uploadProfilePhoto(croppedFile)
-      showMsg('Profile photo updated!')
-    } catch {
-      showMsg('Failed to upload photo.')
-    } finally {
-      setLoading(false)
-    }
   }
 
   async function saveName() {
@@ -85,7 +60,6 @@ export default function ProfileTab() {
         {/* Avatar + name */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div
-            onClick={() => fileRef.current?.click()}
             style={{
               width: 96, height: 96,
               borderRadius: '50%',
@@ -94,23 +68,10 @@ export default function ProfileTab() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              position: 'relative',
             }}
           >
-            {userData?.photoURL
-              ? <img src={userData.photoURL} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--brown)' }}>{initials}</span>
-            }
-            <div style={{
-              position: 'absolute', bottom: 0, insetInline: 0,
-              background: 'rgba(155,118,84,0.7)',
-              color: '#fff', fontSize: '0.65rem', padding: '4px',
-              textAlign: 'center',
-            }}>Edit</div>
+            <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--brown)' }}>{initials}</span>
           </div>
-          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
 
           {editName ? (
             <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center', justifyContent: 'center' }}>
@@ -166,19 +127,14 @@ export default function ProfileTab() {
           <p className="text-sm fw-600" style={{ color: 'var(--brown)', marginBottom: 10 }}>Your Plan</p>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span className="text-sm text-muted">Performance Tier</span>
-            <span className={`chip ${perf >= 80 ? 'chip-teal' : 'chip-gold'}`}>
-              {perf >= 80 ? 'High Performance' : 'Recovery Plan'}
+            <span className={`chip ${perf >= 75 ? 'chip-teal' : 'chip-gold'}`}>
+              {perf >= 75 ? 'High Performance' : 'Recovery Plan'}
             </span>
           </div>
           <div className="divider" />
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span className="text-sm text-muted">Daily New Pages</span>
-            <span className="fw-600" style={{ color: 'var(--brown)' }}>{perf >= 80 ? '5→10→20' : '2→5→10'}</span>
-          </div>
-          <div className="divider" />
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span className="text-sm text-muted">Daily Muraja'ah</span>
-            <span className="fw-600" style={{ color: 'var(--brown)' }}>{perf >= 80 ? '20 pages' : '10 pages'}</span>
+            <span className="fw-600" style={{ color: 'var(--brown)' }}>{perf >= 75 ? '5 pages/day' : '2 pages/day'}</span>
           </div>
         </div>
 
@@ -241,14 +197,6 @@ export default function ProfileTab() {
       )}
 
       {toast && <div className="toast">{toast}</div>}
-
-      {cropSrc && (
-        <ImageCropper
-          imageSrc={cropSrc}
-          onConfirm={handleCropConfirm}
-          onCancel={() => setCropSrc(null)}
-        />
-      )}
     </div>
   )
 }
