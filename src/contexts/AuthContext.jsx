@@ -54,17 +54,8 @@ export function AuthProvider({ children }) {
     // Force auth token so Firestore rules see request.auth immediately
     await cred.user.getIdToken(true)
 
-    // Photo upload is optional — skip silently if Storage isn't enabled
-    let photoURL = ''
-    if (photoFile) {
-      try {
-        const storageRef = ref(storage, `profiles/${uid}/${photoFile.name}`)
-        await uploadBytes(storageRef, photoFile)
-        photoURL = await getDownloadURL(storageRef)
-      } catch (e) {
-        console.warn('Photo upload skipped:', e.message)
-      }
-    }
+    // Skip photo upload during registration — upload after from Profile to avoid hangs
+    const photoURL = ''
 
     const rollNumber = await generateUniqueRoll()
 
@@ -174,17 +165,16 @@ export function AuthProvider({ children }) {
 
   async function generateUniqueRoll() {
     try {
-      for (let i = 0; i < 10; i++) {
-        const roll = generateRollNumber()
-        const q    = query(collection(db, 'users'), where('rollNumber', '==', roll))
-        const snap = await getDocs(q)
-        if (snap.empty) return roll
-      }
-    } catch (e) {
-      console.warn('Roll number check skipped:', e.message)
+      const roll = generateRollNumber()
+      const q    = query(collection(db, 'users'), where('rollNumber', '==', roll))
+      await Promise.race([
+        getDocs(q),
+        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000)),
+      ])
+      return roll
+    } catch {
+      return generateRollNumber()
     }
-    // Fallback: just return a random number if Firestore query fails
-    return generateRollNumber()
   }
 
   useEffect(() => {
