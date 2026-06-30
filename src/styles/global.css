@@ -545,10 +545,10 @@ tr:hover td { background: var(--bg); }
   padding-bottom: calc(var(--tab-h) + 20px);
 }
 
-/* Splash screen — book open */
-@keyframes bookAppear {
-  from { opacity: 0; transform: scale(0.82) translateY(20px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+/* Splash — bismillah write reveal (right to left, matching Arabic direction) */
+@keyframes writeReveal {
+  from { clip-path: inset(0 0 0 100%); opacity: 0.3; }
+  to   { clip-path: inset(0 0 0 0%);   opacity: 1; }
 }
 
 /* Fade animation */
