@@ -71,7 +71,7 @@ export default function HomeTab() {
         </div>
 
         {/* Performance banner */}
-        <div style={{ background: 'linear-gradient(135deg, var(--brown), var(--brown-dark))', borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: 16, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: 'var(--brown)', borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: 16, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <p style={{ fontSize: '0.75rem', opacity: 0.75, marginBottom: 2 }}>Overall Progress</p>
             <p style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1 }}>{progressPct}%</p>
@@ -214,7 +214,7 @@ export default function HomeTab() {
         <div className="celebration-overlay" onClick={() => setShowCelebration(false)}>
           <div style={{ fontSize: '5rem', lineHeight: 1, marginBottom: 16 }}>🌟</div>
           <h2 style={{ color: 'var(--brown)', marginBottom: 8 }}>Lesson Complete!</h2>
-          <p className="fw-600" style={{ color: 'var(--brown-dark)', fontSize: '1.1rem', marginBottom: 16 }}>
+          <p className="fw-600" style={{ color: 'var(--brown)', fontSize: '1.1rem', marginBottom: 16 }}>
             MashaAllah, {userData?.displayName}!
           </p>
           <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius)', padding: '20px', marginBottom: 20, maxWidth: 320 }}>

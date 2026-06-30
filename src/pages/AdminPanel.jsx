@@ -51,7 +51,7 @@ export default function AdminPanel() {
 
   if (!authed) {
     return (
-      <div className="page-no-tabs fade-in" style={{ background: 'linear-gradient(160deg, #1a0f06 0%, #2d1f0f 50%, var(--bg) 100%)', minHeight: '100vh' }}>
+      <div className="page-no-tabs fade-in" style={{ background: 'var(--brown)' }}>
         <div className="page-content" style={{ justifyContent: 'center', flex: 1 }}>
           <div className="text-center" style={{ marginBottom: 32 }}>
             <div style={{ background: '#fff', borderRadius: 14, padding: '12px 20px', display: 'inline-block' }}>

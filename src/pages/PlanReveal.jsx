@@ -32,7 +32,7 @@ export default function PlanReveal() {
     <div className="page-no-tabs fade-in" style={{ background: 'var(--bg)', overflowY: 'auto' }}>
       {/* Hero banner */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--brown), var(--brown-dark))',
+        background: 'var(--brown)',
         padding: '56px 24px 40px',
         textAlign: 'center',
         color: '#fff',
@@ -135,7 +135,7 @@ export default function PlanReveal() {
             <div className="stat-value">{totalPages}</div>
             <div className="stat-label">Pages to Cover</div>
           </div>
-          <div className="stat-card" style={{ gridColumn: '1 / -1', background: 'linear-gradient(135deg, var(--brown), var(--brown-dark))', border: 'none' }}>
+          <div className="stat-card" style={{ gridColumn: '1 / -1', background: 'var(--brown)', border: 'none' }}>
             <div className="stat-value" style={{ color: 'var(--gold)', fontSize: '1.1rem' }}>
               {estDate ? formatDate(estDate) : '—'}
             </div>
