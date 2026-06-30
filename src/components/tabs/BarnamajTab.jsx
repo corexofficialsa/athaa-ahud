@@ -10,7 +10,7 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
 export default function BarnamajTab() {
-  const { userData, addLeave } = useAuth()
+  const { userData, schedule: scheduleResult, addLeave } = useAuth()
   const [showLeaveModal, setShowLeaveModal] = useState(false)
   const [leaveDate,  setLeaveDate]  = useState('')
   const [leaveNote,  setLeaveNote]  = useState('')
@@ -18,7 +18,7 @@ export default function BarnamajTab() {
   const [filter,     setFilter]     = useState('all') // all | upcoming | completed
 
   const plan         = userData?.plan
-  const schedule     = plan?.schedule || []
+  const schedule     = scheduleResult?.schedule || []
   const completedDays = userData?.completedDays || []
   const leaves       = userData?.leaves || []
 

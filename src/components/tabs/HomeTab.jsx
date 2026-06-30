@@ -4,7 +4,7 @@ import { getTodaySchedule, formatDate, formatDateShort } from '../../utils/sched
 import { getJuzForPage, MOTIVATIONAL_QUOTES } from '../../utils/quranData'
 
 export default function HomeTab() {
-  const { userData, markDayComplete, addLeave } = useAuth()
+  const { userData, schedule, markDayComplete, addLeave } = useAuth()
   const [showLeaveModal, setShowLeaveModal] = useState(false)
   const [leaveReason, setLeaveReason]       = useState('')
   const [showCelebration, setShowCelebration] = useState(false)
@@ -15,7 +15,8 @@ export default function HomeTab() {
   const today    = new Date()
   const todayKey = today.toISOString().split('T')[0]
 
-  const todayEntry = plan?.schedule ? getTodaySchedule(plan.schedule, plan.schedule[0]?.date || todayKey) : null
+  const sched      = schedule?.schedule || []
+  const todayEntry = sched.length ? getTodaySchedule(sched, sched[0]?.date || todayKey) : null
   const isCompleted = (userData?.completedDays || []).some(d => d.date === todayKey && !d.isLeave)
   const isLeave     = (userData?.completedDays || []).some(d => d.date === todayKey && d.isLeave)
   const alreadyLogged = isCompleted || isLeave

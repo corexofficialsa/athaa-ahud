@@ -11,7 +11,23 @@ import {
 } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { auth, db, storage } from '../firebase'
-import { generateRollNumber } from '../utils/scheduleCalculator'
+import { generateRollNumber, buildSchedule } from '../utils/scheduleCalculator'
+
+function computeSchedule(userData) {
+  if (!userData?.onboardingData || !userData?.plan) return null
+  const { startSurah, startDate, weekendDays, juzRatings, score } = userData.onboardingData
+  try {
+    return buildSchedule({
+      startPage: userData.onboardingData.startPage || 1,
+      startDate,
+      weekendDays: weekendDays || [],
+      juzRatings:  juzRatings  || [],
+      performanceScore: score || userData.plan.performanceScore || 0,
+    })
+  } catch {
+    return null
+  }
+}
 
 const AuthContext = createContext()
 
@@ -22,31 +38,43 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null)
   const [userData, setUserData]       = useState(null)
+  const [schedule,  setSchedule]      = useState(null)
   const [loading, setLoading]         = useState(true)
 
+  function applyUserData(data) {
+    setUserData(data)
+    if (data) setSchedule(computeSchedule(data))
+    else      setSchedule(null)
+  }
+
   async function register({ email, password, username, displayName, photoFile, onboardingData, plan }) {
-    console.log('[1] Creating auth user...')
     const cred = await createUserWithEmailAndPassword(auth, email, password)
     const uid  = cred.user.uid
-    console.log('[2] Auth user created:', uid)
+
+    // Force auth token so Firestore rules see request.auth immediately
+    await cred.user.getIdToken(true)
 
     // Photo upload is optional — skip silently if Storage isn't enabled
     let photoURL = ''
     if (photoFile) {
       try {
-        console.log('[3] Uploading photo...')
         const storageRef = ref(storage, `profiles/${uid}/${photoFile.name}`)
         await uploadBytes(storageRef, photoFile)
         photoURL = await getDownloadURL(storageRef)
-        console.log('[3] Photo uploaded.')
       } catch (e) {
-        console.warn('[3] Photo upload skipped:', e.message)
+        console.warn('Photo upload skipped:', e.message)
       }
     }
 
-    console.log('[4] Generating roll number...')
     const rollNumber = await generateUniqueRoll()
-    console.log('[5] Roll number:', rollNumber)
+
+    // Store plan WITHOUT the full schedule (too large) — recompute on client
+    const planMeta = {
+      totalDays:               plan.totalDays,
+      totalNewPages:           plan.totalNewPages,
+      estimatedCompletionDate: plan.estimatedCompletionDate,
+      performanceScore:        plan.performanceScore,
+    }
 
     const data = {
       uid,
@@ -56,23 +84,26 @@ export function AuthProvider({ children }) {
       photoURL,
       rollNumber,
       onboardingData,
-      plan,
+      plan: planMeta,
       createdAt: new Date().toISOString(),
       completedDays: [],
       leaves: [],
     }
 
-    console.log('[6] Writing to Firestore...')
-    await setDoc(doc(db, 'users', uid), data)
-    console.log('[7] Done! Navigating...')
-    setUserData(data)
+    // 15-second timeout so it never hangs silently
+    await Promise.race([
+      setDoc(doc(db, 'users', uid), data),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Registration timed out. Please check your internet and try again.')), 15000)),
+    ])
+
+    applyUserData(data)
     return data
   }
 
   async function login(email, password) {
     const cred = await signInWithEmailAndPassword(auth, email, password)
     const snap = await getDoc(doc(db, 'users', cred.user.uid))
-    if (snap.exists()) setUserData(snap.data())
+    if (snap.exists()) applyUserData(snap.data())
     return cred
   }
 
@@ -93,7 +124,7 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     await signOut(auth)
-    setUserData(null)
+    applyUserData(null)
   }
 
   async function resetPassword(email) {
@@ -103,7 +134,7 @@ export function AuthProvider({ children }) {
   async function updateUserData(updates) {
     if (!currentUser) return
     await updateDoc(doc(db, 'users', currentUser.uid), updates)
-    setUserData(prev => ({ ...prev, ...updates }))
+    applyUserData({ ...userData, ...updates })
   }
 
   async function markDayComplete(dayKey, isLeave, leaveReason) {
@@ -138,7 +169,7 @@ export function AuthProvider({ children }) {
   async function refreshUserData() {
     if (!currentUser) return
     const snap = await getDoc(doc(db, 'users', currentUser.uid))
-    if (snap.exists()) setUserData(snap.data())
+    if (snap.exists()) applyUserData(snap.data())
   }
 
   async function generateUniqueRoll() {
@@ -161,9 +192,9 @@ export function AuthProvider({ children }) {
       setCurrentUser(user)
       if (user) {
         const snap = await getDoc(doc(db, 'users', user.uid))
-        if (snap.exists()) setUserData(snap.data())
+        if (snap.exists()) applyUserData(snap.data())
       } else {
-        setUserData(null)
+        applyUserData(null)
       }
       setLoading(false)
     })
@@ -173,6 +204,7 @@ export function AuthProvider({ children }) {
   const value = {
     currentUser,
     userData,
+    schedule,
     loading,
     register,
     login,

@@ -121,7 +121,7 @@ export default function Onboarding() {
         juzRatings,
         performanceScore: score,
       })
-      const onboardingData = { answers, startSurah, startAyah, startDate, weekendDays, juzRatings, score }
+      const onboardingData = { answers, startSurah, startAyah, startDate, weekendDays, juzRatings, score, startPage }
       await register({ email, password, username, displayName: name, photoFile, onboardingData, plan })
       navigate('/plan-reveal')
     } catch (err) {

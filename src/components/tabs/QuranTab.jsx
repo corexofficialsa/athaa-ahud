@@ -6,7 +6,7 @@ import { getTodaySchedule } from '../../utils/scheduleCalculator'
 const QURAN_API = 'https://api.alquran.cloud/v1/page'
 
 export default function QuranTab() {
-  const { userData } = useAuth()
+  const { userData, schedule: scheduleResult } = useAuth()
   const [page, setPage]      = useState(1)
   const [ayahs, setAyahs]    = useState([])
   const [loading, setLoading] = useState(false)
@@ -17,7 +17,7 @@ export default function QuranTab() {
   const scrollRef = useRef()
 
   const plan             = userData?.plan
-  const schedule         = plan?.schedule || []
+  const schedule         = scheduleResult?.schedule || []
   const startDate        = schedule[0]?.date
   const todayEntry       = schedule.length ? getTodaySchedule(schedule, startDate) : null
   const todayNewStart    = todayEntry?.newLesson?.startPage
