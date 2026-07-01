@@ -54,7 +54,7 @@ export default function ProfileTab() {
 
   return (
     <div style={{ height: '100%', overflow: 'auto' }}>
-      <div style={{ padding: '56px 16px 40px' }}>
+      <div style={{ padding: 'var(--header-top) 16px 40px' }}>
         <h2 style={{ color: 'var(--brown)', marginBottom: 20 }}>Profile</h2>
 
         {/* Avatar + name */}

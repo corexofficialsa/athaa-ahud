@@ -58,7 +58,7 @@ export default function BarnamajTab() {
 
   return (
     <div style={{ height: '100%', overflow: 'auto' }}>
-      <div style={{ padding: '56px 16px 24px' }}>
+      <div style={{ padding: 'var(--header-top) 16px 24px' }}>
         <h2 style={{ color: 'var(--brown)', marginBottom: 4 }}>Barnamaj</h2>
         <p className="text-sm text-muted" style={{ marginBottom: 20 }}>Your full revision programme</p>
 

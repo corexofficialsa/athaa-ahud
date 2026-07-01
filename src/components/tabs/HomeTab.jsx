@@ -60,7 +60,7 @@ export default function HomeTab() {
 
   return (
     <div style={{ height: '100%', overflow: 'auto' }}>
-      <div style={{ padding: '56px 16px 24px' }}>
+      <div style={{ padding: 'var(--header-top) 16px 24px' }}>
         {/* Greeting */}
         <div style={{ marginBottom: 20 }}>
           <p className="text-sm text-muted">

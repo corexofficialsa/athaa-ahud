@@ -17,6 +17,10 @@
   --shadow:  0 4px 20px rgba(155,118,84,0.12);
   --shadow-lg: 0 8px 40px rgba(155,118,84,0.18);
   --tab-h:   72px;
+  /* safe area helpers — use var(--header-top) for page header paddingTop */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-top:  calc(env(safe-area-inset-top, 0px) + 16px);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -79,6 +83,9 @@ p  { line-height: 1.6; }
   border-radius: var(--radius);
   font-family: inherit;
   font-size: 1rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -181,6 +188,8 @@ p  { line-height: 1.6; }
   min-height: 100%;
   padding-bottom: var(--tab-h);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .page-no-tabs {
@@ -189,6 +198,8 @@ p  { line-height: 1.6; }
   flex-direction: column;
   min-height: 100%;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .page-content {

@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useState, useEffect } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import SplashScreen from './components/SplashScreen'
 
@@ -16,9 +16,23 @@ function PageLoader() {
 }
 
 function PrivateRoute({ children }) {
-  const { currentUser, userData } = useAuth()
+  const { currentUser, userData, refreshUserData } = useAuth()
+
+  // If signed in but Firestore fetch failed, retry once after 2 seconds
+  useEffect(() => {
+    if (currentUser && !userData) {
+      const t = setTimeout(refreshUserData, 2000)
+      return () => clearTimeout(t)
+    }
+  }, [currentUser, userData])
+
   if (!currentUser) return <Navigate to="/" replace />
-  if (!userData) return <div className="loading-screen"><div className="spinner" /></div>
+  if (!userData) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12 }}>
+      <div className="spinner" />
+      <p style={{ color: 'var(--text-2)', fontSize: '0.8rem' }}>Loading your profile…</p>
+    </div>
+  )
   if (!userData.plan) return <Navigate to="/onboarding" replace />
   return children
 }

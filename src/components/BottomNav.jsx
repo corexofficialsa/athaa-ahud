@@ -8,13 +8,16 @@ const TABS = [
 export default function BottomNav({ active, onChange }) {
   return (
     <nav style={{
-      height: 'var(--tab-h)',
       background: 'var(--surface)',
       borderTop: '1px solid var(--border)',
       display: 'flex',
       alignItems: 'stretch',
       flexShrink: 0,
       boxShadow: '0 -4px 20px rgba(155,118,84,0.08)',
+      paddingBottom: 'env(safe-area-inset-bottom)',
+      userSelect: 'none',
+      WebkitUserSelect: 'none',
+      touchAction: 'manipulation',
     }}>
       {TABS.map(tab => {
         const isActive = active === tab.key
@@ -25,6 +28,7 @@ export default function BottomNav({ active, onChange }) {
             onClick={() => onChange(tab.key)}
             style={{
               flex: 1,
+              height: 'var(--tab-h)',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
