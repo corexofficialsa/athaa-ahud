@@ -52,7 +52,6 @@ const QUESTIONS = [
 export default function Onboarding() {
   const navigate  = useNavigate()
   const { register } = useAuth()
-  const fileRef   = useRef()
 
   const [step,    setStep]    = useState(0)     // 0=name, 1-4=questions, 5=start, 6=dates, 7=juz, 8=account
   const [name,    setName]    = useState('')
