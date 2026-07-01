@@ -211,24 +211,27 @@ export default function HomeTab() {
 
       {/* Celebration */}
       {showCelebration && (
-        <div className="celebration-overlay" onClick={() => setShowCelebration(false)}>
-          <div style={{ fontSize: '5rem', lineHeight: 1, marginBottom: 16 }}>🌟</div>
-          <h2 style={{ color: 'var(--brown)', marginBottom: 8 }}>Lesson Complete!</h2>
-          <p className="fw-600" style={{ color: 'var(--brown)', fontSize: '1.1rem', marginBottom: 16 }}>
-            MashaAllah, {userData?.displayName}!
-          </p>
-          <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius)', padding: '20px', marginBottom: 20, maxWidth: 320 }}>
-            <p className="arabic" style={{ fontSize: '1.1rem', color: 'var(--brown)', direction: 'rtl', lineHeight: 2 }}>
-              {quote.arabic}
+        <>
+          <Confetti />
+          <div className="celebration-overlay" onClick={() => setShowCelebration(false)}>
+            <div style={{ fontSize: '5rem', lineHeight: 1, marginBottom: 16, animation: 'popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both' }}>🎉</div>
+            <h2 style={{ color: 'var(--brown)', marginBottom: 8 }}>Lesson Complete!</h2>
+            <p className="fw-600" style={{ color: 'var(--brown)', fontSize: '1.1rem', marginBottom: 16 }}>
+              MashaAllah, {userData?.displayName}!
             </p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-2)', marginTop: 8, fontStyle: 'italic', textAlign: 'center' }}>
-              {quote.english}
-            </p>
+            <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius)', padding: '20px', marginBottom: 20, maxWidth: 320 }}>
+              <p className="arabic" style={{ fontSize: '1.1rem', color: 'var(--brown)', direction: 'rtl', lineHeight: 2 }}>
+                {quote.arabic}
+              </p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-2)', marginTop: 8, fontStyle: 'italic', textAlign: 'center' }}>
+                {quote.english}
+              </p>
+            </div>
+            <button className="btn btn-primary" onClick={() => setShowCelebration(false)}>
+              Continue →
+            </button>
           </div>
-          <button className="btn btn-primary" onClick={() => setShowCelebration(false)}>
-            Continue →
-          </button>
-        </div>
+        </>
       )}
 
       {toast && <div className="toast">{toast}</div>}
@@ -306,4 +309,39 @@ function greeting() {
   if (h < 12) return 'Good morning'
   if (h < 17) return 'Good afternoon'
   return 'Good evening'
+}
+
+const CONFETTI_COLORS = ['#9B7654', '#FADDA4', '#62CEBA', '#F0B544', '#e74c3c', '#2ecc71', '#9b59b6', '#e67e22']
+
+function Confetti() {
+  const pieces = Array.from({ length: 70 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 3,
+    duration: 2 + Math.random() * 2.5,
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    w: 6 + Math.random() * 8,
+    h: 8 + Math.random() * 10,
+    circle: Math.random() > 0.4,
+  }))
+  return (
+    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 1002, overflow: 'hidden' }}>
+      {pieces.map(p => (
+        <div key={p.id} style={{
+          position: 'absolute',
+          top: -20,
+          left: `${p.left}%`,
+          width: p.w,
+          height: p.circle ? p.w : p.h,
+          background: p.color,
+          borderRadius: p.circle ? '50%' : '2px',
+          animationName: 'confettiFall',
+          animationDuration: `${p.duration}s`,
+          animationDelay: `${p.delay}s`,
+          animationTimingFunction: 'ease-in',
+          animationFillMode: 'forwards',
+        }} />
+      ))}
+    </div>
+  )
 }
